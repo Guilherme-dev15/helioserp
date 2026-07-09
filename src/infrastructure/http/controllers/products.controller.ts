@@ -2,6 +2,9 @@
 import {
   Controller,
   Post,
+  Get,
+  Patch,
+  Param,
   Body,
   UseGuards,
   InternalServerErrorException,
@@ -9,6 +12,8 @@ import {
 import { CreateProductUseCase } from '../../../application/use-cases/create-product.use-case';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { TenantContext } from '../../database/tenant-context';
+import { ListProductsUseCase } from '../../../application/use-cases/list-products.use-case';
+import { DeactivateProductUseCase } from '../../../application/use-cases/deactivate-product.use-case';
 
 export class CreateProductDto {
   name!: string;
@@ -21,6 +26,8 @@ export class CreateProductDto {
 export class ProductsController {
   constructor(
     private readonly createProduct: CreateProductUseCase,
+    private readonly listProducts: ListProductsUseCase,
+    private readonly deactivateProduct: DeactivateProductUseCase,
     private readonly tenantContext: TenantContext,
   ) {}
 
@@ -48,5 +55,29 @@ export class ProductsController {
       price: product.price,
       stock: product.stock,
     };
+  }
+
+  @Get()
+  async findAll() {
+    const tenantId = this.tenantContext.getTenantId();
+    if (!tenantId) throw new InternalServerErrorException('Contexto perdido.');
+
+    const products = await this.listProducts.execute(tenantId);
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      stock: p.stock,
+      active: p.isActive,
+    }));
+  }
+
+  @Patch(':id/deactivate')
+  async deactivate(@Param('id') id: string) {
+    const tenantId = this.tenantContext.getTenantId();
+    if (!tenantId) throw new InternalServerErrorException('Contexto perdido.');
+
+    await this.deactivateProduct.execute(tenantId, id);
+    return { message: 'Produto desativado com sucesso.' };
   }
 }

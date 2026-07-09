@@ -1,10 +1,13 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ProductsModule } from './infrastructure/ioc/products.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ProductsModule,
+    // Futuramente colocaremos o AuthModule e outros aqui
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
