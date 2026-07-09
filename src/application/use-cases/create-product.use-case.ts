@@ -8,6 +8,7 @@ export interface CreateProductCommand {
   name: string;
   description?: string;
   price: number; // Em centavos
+  minStockThreshold?: number;
 }
 
 @Injectable()
@@ -21,6 +22,7 @@ export class CreateProductUseCase {
       name: command.name,
       description: command.description,
       price: command.price,
+      minStockThreshold: command.minStockThreshold,
     });
 
     // 2. Persiste a entidade usando a porta (interface) do repositório

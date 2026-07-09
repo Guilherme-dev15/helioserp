@@ -8,6 +8,7 @@ export interface ProductProps {
   description?: string | null;
   price: number;
   stock?: number;
+  minStockThreshold?: number; // <-- NOVA PROPRIEDADE
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -23,6 +24,7 @@ export class Product {
   private _isActive: boolean;
   private _createdAt: Date;
   private _updatedAt: Date;
+  private _minStockThreshold: number;
 
   private constructor(props: ProductProps) {
     this.validate(props);
@@ -36,6 +38,7 @@ export class Product {
     this._isActive = props.isActive ?? true;
     this._createdAt = props.createdAt ?? new Date();
     this._updatedAt = props.updatedAt ?? new Date();
+    this._minStockThreshold = props.minStockThreshold ?? 0;
   }
 
   /**
@@ -60,6 +63,9 @@ export class Product {
     }
     if (props.price < 0) {
       throw new Error('O preço do produto não pode ser negativo.');
+    }
+    if (props.minStockThreshold !== undefined && props.minStockThreshold < 0) {
+      throw new Error('O limite mínimo de estoque não pode ser negativo.');
     }
   }
 
@@ -91,7 +97,14 @@ export class Product {
   get updatedAt(): Date {
     return this._updatedAt;
   }
+  get minStockThreshold(): number {
+    return this._minStockThreshold;
+  }
 
+  // Regra de negócio pura encapsulada!
+  get isLowStock(): boolean {
+    return this._stock <= this._minStockThreshold;
+  }
   // Ações de Domínio
   public deactivate(): void {
     this._isActive = false;

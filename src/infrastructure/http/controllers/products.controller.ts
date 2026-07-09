@@ -23,6 +23,7 @@ export class CreateProductDto {
   name!: string;
   description?: string;
   price!: number;
+  minStockThreshold?: number;
 }
 
 @UseGuards(JwtAuthGuard) // Rota protegida, só entra quem tem JWT válido!
@@ -52,6 +53,7 @@ export class ProductsController {
       name: dto.name,
       description: dto.description,
       price: dto.price,
+      minStockThreshold: dto.minStockThreshold,
     });
 
     return {
@@ -59,6 +61,8 @@ export class ProductsController {
       name: product.name,
       price: product.price,
       stock: product.stock,
+      minStockThreshold: product.minStockThreshold,
+      isLowStock: product.isLowStock,
     };
   }
 
@@ -74,6 +78,8 @@ export class ProductsController {
       price: p.price,
       stock: p.stock,
       active: p.isActive,
+      minStockThreshold: p.minStockThreshold,
+      isLowStock: p.isLowStock,
     }));
   }
 

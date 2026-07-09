@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/infrastructure/database/repositories/prisma-product.repository.ts
 import { Injectable } from '@nestjs/common';
 import { ProductRepository } from '../../../domain/repositories/product.repository';
@@ -22,6 +23,7 @@ export class PrismaProductRepository implements ProductRepository {
           active: product.isActive,
           createdAt: product.createdAt,
           updatedAt: product.updatedAt,
+          minStockThreshold: product.minStockThreshold,
         },
       });
     });
@@ -33,7 +35,21 @@ export class PrismaProductRepository implements ProductRepository {
         orderBy: { name: 'asc' },
       });
 
-      return models.map((model) => Product.restore(model));
+      // 👇 RESTAURA TRAZENDO O CAMPO DO BANCO
+      return models.map((model) =>
+        Product.restore({
+          id: model.id,
+          tenantId: model.tenantId,
+          name: model.name,
+          description: model.description,
+          price: model.price,
+          stock: model.stock,
+          minStockThreshold: model.minStockThreshold,
+          isActive: model.active,
+          createdAt: model.createdAt,
+          updatedAt: model.updatedAt,
+        }),
+      );
     });
   }
 
@@ -44,7 +60,18 @@ export class PrismaProductRepository implements ProductRepository {
       });
 
       if (!model) return null;
-      return Product.restore(model);
+      return Product.restore({
+        id: model.id,
+        tenantId: model.tenantId,
+        name: model.name,
+        description: model.description,
+        price: model.price,
+        stock: model.stock,
+        minStockThreshold: model.minStockThreshold,
+        isActive: model.active,
+        createdAt: model.createdAt,
+        updatedAt: model.updatedAt,
+      });
     });
   }
 
@@ -59,6 +86,7 @@ export class PrismaProductRepository implements ProductRepository {
           stock: product.stock,
           active: product.isActive,
           updatedAt: product.updatedAt,
+          minStockThreshold: product.minStockThreshold,
         },
       });
     });

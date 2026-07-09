@@ -91,4 +91,40 @@ describe('Product Entity', () => {
       product.removeStock(11);
     }).toThrow('Estoque insuficiente para realizar esta operação.');
   });
+  it('deve criar o produto com limite minimo de estoque padrao (zero)', () => {
+    const product = Product.create({
+      tenantId: 'adega-123',
+      name: 'Água Mineral',
+      price: 200,
+    });
+
+    expect(product.minStockThreshold).toBe(0);
+  });
+
+  it('deve lançar erro se o limite mínimo de estoque for negativo', () => {
+    expect(() => {
+      Product.create({
+        tenantId: 'adega-123',
+        name: 'Gelo',
+        price: 1000,
+        minStockThreshold: -5,
+      });
+    }).toThrow('O limite mínimo de estoque não pode ser negativo.');
+  });
+
+  it('deve sinalizar corretamente quando o produto estiver com estoque baixo', () => {
+    const product = Product.restore({
+      id: 'prod-1',
+      tenantId: 'adega-123',
+      name: 'Vodka Absolut',
+      price: 9000,
+      stock: 5,
+      minStockThreshold: 10, // O lojista quer ser avisado quando chegar em 10
+    });
+
+    expect(product.isLowStock).toBe(true);
+
+    product.addStock(20); // Estoque vai para 25
+    expect(product.isLowStock).toBe(false);
+  });
 });

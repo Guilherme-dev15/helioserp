@@ -62,6 +62,7 @@ model Product {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+  minStockThreshold Int      @default(0) @map("min_stock_threshold") // <-- NOVA COLUNA
 
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
