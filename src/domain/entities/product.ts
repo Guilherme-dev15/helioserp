@@ -109,4 +109,26 @@ export class Product {
     this._price = newPriceInCents;
     this._updatedAt = new Date();
   }
+  public addStock(quantity: number): void {
+    if (quantity <= 0) {
+      throw new Error(
+        'A quantidade para adicionar ao estoque deve ser maior que zero.',
+      );
+    }
+    this._stock += quantity;
+    this._updatedAt = new Date();
+  }
+
+  public removeStock(quantity: number): void {
+    if (quantity <= 0) {
+      throw new Error(
+        'A quantidade para remover do estoque deve ser maior que zero.',
+      );
+    }
+    if (this._stock < quantity) {
+      throw new Error('Estoque insuficiente para realizar esta operação.');
+    }
+    this._stock -= quantity;
+    this._updatedAt = new Date();
+  }
 }

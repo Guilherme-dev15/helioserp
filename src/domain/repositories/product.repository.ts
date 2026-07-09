@@ -9,4 +9,16 @@ export abstract class ProductRepository {
     productId: string,
   ): Promise<Product | null>;
   abstract update(product: Product): Promise<void>;
+
+  // NOSSOS DOIS NOVOS MÉTODOS ATÔMICOS:
+  abstract incrementStock(
+    tenantId: string,
+    productId: string,
+    quantity: number,
+  ): Promise<void>;
+  abstract decrementStock(
+    tenantId: string,
+    productId: string,
+    quantity: number,
+  ): Promise<void>;
 }

@@ -8,12 +8,16 @@ import {
   Body,
   UseGuards,
   InternalServerErrorException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { CreateProductUseCase } from '../../../application/use-cases/create-product.use-case';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { TenantContext } from '../../database/tenant-context';
 import { ListProductsUseCase } from '../../../application/use-cases/list-products.use-case';
 import { DeactivateProductUseCase } from '../../../application/use-cases/deactivate-product.use-case';
+import { AdjustStockUseCase } from '../../../application/use-cases/adjust-stock.use-case';
+import { AdjustStockDto } from '../dto/adjust-stock.dto';
 
 export class CreateProductDto {
   name!: string;
@@ -29,6 +33,7 @@ export class ProductsController {
     private readonly listProducts: ListProductsUseCase,
     private readonly deactivateProduct: DeactivateProductUseCase,
     private readonly tenantContext: TenantContext,
+    private readonly adjustStock: AdjustStockUseCase,
   ) {}
 
   @Post()
@@ -79,5 +84,23 @@ export class ProductsController {
 
     await this.deactivateProduct.execute(tenantId, id);
     return { message: 'Produto desativado com sucesso.' };
+  }
+  @Patch(':id/stock')
+  @HttpCode(HttpStatus.OK)
+  async adjustStockAction(
+    @Param('id') id: string,
+    @Body() dto: AdjustStockDto,
+  ) {
+    const tenantId = this.tenantContext.getTenantId();
+    if (!tenantId) throw new InternalServerErrorException('Contexto perdido.');
+
+    await this.adjustStock.execute({
+      tenantId,
+      productId: id,
+      type: dto.type,
+      quantity: dto.quantity,
+    });
+
+    return { message: 'Estoque atualizado com sucesso.' };
   }
 }

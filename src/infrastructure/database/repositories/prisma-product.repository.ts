@@ -63,4 +63,52 @@ export class PrismaProductRepository implements ProductRepository {
       });
     });
   }
+  async incrementStock(
+    tenantId: string,
+    productId: string,
+    quantity: number,
+  ): Promise<void> {
+    await this.prisma.scoped(async (tx) => {
+      const result = await tx.product.updateMany({
+        where: { id: productId, tenantId },
+        data: { stock: { increment: quantity } },
+      });
+
+      if (result.count === 0) {
+        throw new Error('NOT_FOUND'); // Será capturado e traduzido pelo Use Case
+      }
+    });
+  }
+
+  async decrementStock(
+    tenantId: string,
+    productId: string,
+    quantity: number,
+  ): Promise<void> {
+    await this.prisma.scoped(async (tx) => {
+      // 1. Verifica se o produto existe e pertence ao tenant
+      const productExists = await tx.product.findUnique({
+        where: { id: productId, tenantId },
+        select: { id: true }, // Select mínimo para economizar I/O
+      });
+
+      if (!productExists) {
+        throw new Error('NOT_FOUND');
+      }
+
+      // 2. Tenta o decremento com a trava gte
+      const result = await tx.product.updateMany({
+        where: {
+          id: productId,
+          tenantId,
+          stock: { gte: quantity },
+        },
+        data: { stock: { decrement: quantity } },
+      });
+
+      if (result.count === 0) {
+        throw new Error('INSUFFICIENT_STOCK');
+      }
+    });
+  }
 }
