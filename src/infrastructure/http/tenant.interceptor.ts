@@ -2,39 +2,56 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/infrastructure/http/tenant.interceptor.ts
-// Responsabilidade: Extrair o Tenant ID do Header HTTP e envelopar o contexto de execução
-// Chama: TenantContext | Chamado por: Ciclo de vida global do NestJS
-
 import {
   Injectable,
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, from, switchMap } from 'rxjs';
 import { TenantContext } from '../database/tenant-context';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class TenantInterceptor implements NestInterceptor {
-  constructor(private readonly tenantContext: TenantContext) {}
+  constructor(
+    private readonly tenantContext: TenantContext,
+    private readonly prisma: PrismaService,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    const tenantId = request.headers['x-tenant-id'] as string;
 
-    // Se a rota for pública (ex: webhook externo), o ideal é usar um Decorator customizado (@Public)
-    // Para o nosso Day 1 de MVP, vamos exigir em tudo que passa pela API para garantir segurança máxima.
-    if (!tenantId) {
-      throw new BadRequestException(
-        'O cabeçalho x-tenant-id é obrigatório para acessar este recurso.',
+    // 1. O usuário foi injetado pelo JwtAuthGuard (Passport)?
+    const user = request.user;
+
+    if (!user || !user.userId) {
+      throw new UnauthorizedException(
+        'Usuário não autenticado ou token inválido.',
       );
     }
 
-    // Injeta o ID da requisição atual no nosso AsyncLocalStorage
-    return this.tenantContext.runWithTenant(tenantId, () => {
-      // Toda execução a partir daqui (Controllers, Services, Prisma) enxerga este tenantId
-      return next.handle();
-    });
+    // 2. Buscamos no banco a qual Tenant este usuário pertence.
+    // Usamos o RxJS (from) para não quebrar a esteira de observables do NestJS.
+    return from(
+      this.prisma.user.findUnique({
+        where: { id: user.userId },
+        select: { tenantId: true },
+      }),
+    ).pipe(
+      switchMap((dbUser) => {
+        if (!dbUser || !dbUser.tenantId) {
+          throw new UnauthorizedException(
+            'Usuário não possui vínculo ativo com nenhuma loja.',
+          );
+        }
+
+        // 3. Sucesso absoluto. Envelopamos o resto da requisição no contexto deste Tenant.
+        return this.tenantContext.runWithTenant(dbUser.tenantId, () => {
+          return next.handle();
+        });
+      }),
+    );
   }
 }

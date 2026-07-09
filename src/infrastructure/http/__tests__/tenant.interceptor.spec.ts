@@ -1,49 +1,68 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// src/infrastructure/http/__tests__/tenant.interceptor.spec.ts
 import {
   ExecutionContext,
-  BadRequestException,
+  UnauthorizedException,
   CallHandler,
 } from '@nestjs/common';
 import { TenantInterceptor } from '../tenant.interceptor';
 import { TenantContext } from '../../database/tenant-context';
-import { of } from 'rxjs';
+import { PrismaService } from '../../database/prisma.service';
+import { of, lastValueFrom } from 'rxjs';
 
-describe('TenantInterceptor', () => {
+describe('TenantInterceptor v2 (JWT Auth)', () => {
   let interceptor: TenantInterceptor;
   let tenantContext: TenantContext;
+  let prismaService: jest.Mocked<PrismaService>;
 
   beforeEach(() => {
     tenantContext = new TenantContext();
-    interceptor = new TenantInterceptor(tenantContext);
+    // Criamos um mock fake do Prisma apenas para o teste não bater no banco real
+    prismaService = {
+      user: {
+        findUnique: jest.fn(),
+      },
+    } as any;
+    interceptor = new TenantInterceptor(tenantContext, prismaService);
   });
 
-  it('deve lançar BadRequestException se o header x-tenant-id não for enviado', () => {
+  it('deve lançar UnauthorizedException se não houver usuário na requisição', () => {
     const mockContext = {
       switchToHttp: () => ({
-        getRequest: () => ({ headers: {} }),
+        getRequest: () => ({ user: null }), // Nenhum token JWT foi decodificado
       }),
     } as ExecutionContext;
 
     const mockCallHandler = { handle: () => of('next') } as CallHandler;
 
+    // Testando o throw SÍNCRONO (sem await/lastValueFrom)
     expect(() => interceptor.intercept(mockContext, mockCallHandler)).toThrow(
-      BadRequestException,
+      UnauthorizedException,
     );
   });
 
-  it('deve executar o contexto do tenant se o header for enviado', () => {
+  it('deve extrair o tenant do banco e injetar no contexto se o usuário existir', async () => {
     const mockContext = {
       switchToHttp: () => ({
-        getRequest: () => ({ headers: { 'x-tenant-id': 'adega-123' } }),
+        getRequest: () => ({ user: { userId: 'user-123' } }), // Mock do JwtAuthGuard
       }),
     } as ExecutionContext;
 
     const mockCallHandler = { handle: () => of('next') } as CallHandler;
 
-    // Espiona se o contexto foi acionado corretamente
+    // Forçamos o Prisma a "achar" o tenantId 'adega-456'
+    (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
+      tenantId: 'adega-456',
+    });
     const runSpy = jest.spyOn(tenantContext, 'runWithTenant');
 
-    interceptor.intercept(mockContext, mockCallHandler);
+    await lastValueFrom(interceptor.intercept(mockContext, mockCallHandler));
 
-    expect(runSpy).toHaveBeenCalledWith('adega-123', expect.any(Function));
+    expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+      where: { id: 'user-123' },
+      select: { tenantId: true },
+    });
+    expect(runSpy).toHaveBeenCalledWith('adega-456', expect.any(Function));
   });
 });
