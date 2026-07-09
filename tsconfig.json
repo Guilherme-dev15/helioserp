@@ -16,7 +16,7 @@
     "strict": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "jest"]
+    "types": ["node", "jest", "multer"]
   },
   "include": ["src/**/*"]
 }

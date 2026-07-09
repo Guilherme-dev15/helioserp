@@ -12,6 +12,7 @@ export interface ProductProps {
   isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  imageUrl?: string | null;
 }
 
 export class Product {
@@ -25,6 +26,7 @@ export class Product {
   private _createdAt: Date;
   private _updatedAt: Date;
   private _minStockThreshold: number;
+  private _imageUrl: string | null;
 
   private constructor(props: ProductProps) {
     this.validate(props);
@@ -39,6 +41,7 @@ export class Product {
     this._createdAt = props.createdAt ?? new Date();
     this._updatedAt = props.updatedAt ?? new Date();
     this._minStockThreshold = props.minStockThreshold ?? 0;
+    this._imageUrl = props.imageUrl ?? null;
   }
 
   /**
@@ -105,6 +108,10 @@ export class Product {
   get isLowStock(): boolean {
     return this._stock <= this._minStockThreshold;
   }
+
+  get imageUrl(): string | null {
+    return this._imageUrl;
+  }
   // Ações de Domínio
   public deactivate(): void {
     this._isActive = false;
@@ -142,6 +149,13 @@ export class Product {
       throw new Error('Estoque insuficiente para realizar esta operação.');
     }
     this._stock -= quantity;
+    this._updatedAt = new Date();
+  }
+  public updateImageUrl(url: string): void {
+    if (url && !url.startsWith('http')) {
+      throw new Error('A URL da imagem deve ser um link válido.');
+    }
+    this._imageUrl = url;
     this._updatedAt = new Date();
   }
 }

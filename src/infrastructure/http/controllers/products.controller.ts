@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // src/infrastructure/http/controllers/products.controller.ts
 import {
   Controller,
@@ -10,6 +11,9 @@ import {
   InternalServerErrorException,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  BadRequestException,
+  UploadedFile,
 } from '@nestjs/common';
 import { CreateProductUseCase } from '../../../application/use-cases/create-product.use-case';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
@@ -18,6 +22,9 @@ import { ListProductsUseCase } from '../../../application/use-cases/list-product
 import { DeactivateProductUseCase } from '../../../application/use-cases/deactivate-product.use-case';
 import { AdjustStockUseCase } from '../../../application/use-cases/adjust-stock.use-case';
 import { AdjustStockDto } from '../dto/adjust-stock.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateProductImageUseCase } from '../../../application/use-cases/update-product-image.use-case';
+import 'multer';
 
 export class CreateProductDto {
   name!: string;
@@ -35,6 +42,7 @@ export class ProductsController {
     private readonly deactivateProduct: DeactivateProductUseCase,
     private readonly tenantContext: TenantContext,
     private readonly adjustStock: AdjustStockUseCase,
+    private readonly updateProductImage: UpdateProductImageUseCase,
   ) {}
 
   @Post()
@@ -108,5 +116,36 @@ export class ProductsController {
     });
 
     return { message: 'Estoque atualizado com sucesso.' };
+  }
+  @Patch(':id/image')
+  @UseInterceptors(FileInterceptor('file')) // Captura o campo 'file' do FormData
+  async uploadImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const tenantId = this.tenantContext.getTenantId();
+    if (!tenantId) throw new InternalServerErrorException('Contexto perdido.');
+
+    if (!file) {
+      throw new BadRequestException('O ficheiro de imagem é obrigatório.');
+    }
+
+    // MOCK DE STORAGE (Simulação de upload para o S3 / Supabase Storage)
+    // No mundo real, aqui chamaríamos um StorageService.upload(file)
+    // Para este MVP da Milestone 2, geramos uma URL fictícia baseada no nome do ficheiro.
+    const mockStorageUrl = `https://supabase.storage.helioserp.com/${tenantId}/products/${Date.now()}-${file.originalname}`;
+
+    const product = await this.updateProductImage.execute({
+      tenantId,
+      productId: id,
+      imageUrl: mockStorageUrl,
+    });
+
+    return {
+      id: product.id,
+      name: product.name,
+      imageUrl: product.imageUrl,
+      message: 'Imagem associada com sucesso (Mock Storage).',
+    };
   }
 }

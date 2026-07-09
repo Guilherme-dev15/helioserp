@@ -24,6 +24,7 @@ export class PrismaProductRepository implements ProductRepository {
           createdAt: product.createdAt,
           updatedAt: product.updatedAt,
           minStockThreshold: product.minStockThreshold,
+          imageUrl: product.imageUrl,
         },
       });
     });
@@ -48,6 +49,7 @@ export class PrismaProductRepository implements ProductRepository {
           isActive: model.active,
           createdAt: model.createdAt,
           updatedAt: model.updatedAt,
+          imageUrl: model.imageUrl,
         }),
       );
     });
@@ -71,6 +73,7 @@ export class PrismaProductRepository implements ProductRepository {
         isActive: model.active,
         createdAt: model.createdAt,
         updatedAt: model.updatedAt,
+        imageUrl: model.imageUrl,
       });
     });
   }
@@ -87,6 +90,7 @@ export class PrismaProductRepository implements ProductRepository {
           active: product.isActive,
           updatedAt: product.updatedAt,
           minStockThreshold: product.minStockThreshold,
+          imageUrl: product.imageUrl,
         },
       });
     });

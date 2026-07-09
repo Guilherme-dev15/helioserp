@@ -7,6 +7,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ------------------------------------------------------
@@ -63,6 +64,7 @@ model Product {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   minStockThreshold Int      @default(0) @map("min_stock_threshold") // <-- NOVA COLUNA
+  imageUrl          String?  @map("image_url")
 
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
