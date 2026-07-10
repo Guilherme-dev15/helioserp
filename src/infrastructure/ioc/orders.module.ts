@@ -9,6 +9,7 @@ import { OrdersController } from '../http/controllers/orders.controller';
 // 👇 Importe o novo caso de uso
 import { UpdateOrderStatusUseCase } from '../../application/use-cases/update-order-status.use-case';
 import { TrackOrderUseCase } from 'src/application/use-cases/track-order.use-case';
+import { GetDashboardMetricsUseCase } from 'src/application/use-cases/get-dashboard-metrics.use-case';
 
 @Module({
   imports: [ProductsModule],
@@ -23,6 +24,7 @@ import { TrackOrderUseCase } from 'src/application/use-cases/track-order.use-cas
     CheckoutUseCase,
     UpdateOrderStatusUseCase,
     TrackOrderUseCase,
+    GetDashboardMetricsUseCase,
   ],
   exports: [OrderRepository, CheckoutUseCase, UpdateOrderStatusUseCase],
 })

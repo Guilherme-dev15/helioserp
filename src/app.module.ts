@@ -1,7 +1,7 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ProductsModule } from './infrastructure/ioc/products.module';
-import { OrdersModule } from './infrastructure/ioc/order.module';
+import { OrdersModule } from './infrastructure/ioc/orders.module';
 @Module({
   imports: [
     ProductsModule,

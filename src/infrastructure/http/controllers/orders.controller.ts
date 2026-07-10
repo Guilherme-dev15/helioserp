@@ -18,25 +18,28 @@ import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { TenantContext } from '../../database/tenant-context';
 import { OrderStatus } from '../../../domain/entities/order';
 import { TrackOrderUseCase } from '../../../application/use-cases/track-order.use-case';
+import { GetDashboardMetricsUseCase } from '../../../application/use-cases/get-dashboard-metrics.use-case';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 // 👇 DTO simples para validar a entrada de dados do Admin
 export class UpdateOrderStatusDto {
   newStatus!: OrderStatus;
 }
 
+@ApiTags('Pedidos')
 @Controller('orders')
 export class OrdersController {
   constructor(
     private readonly checkoutUseCase: CheckoutUseCase,
-    // 👇 Injetamos o novo caso de uso e o contexto de tenant (para segurança)
     private readonly updateOrderStatusUseCase: UpdateOrderStatusUseCase,
-    private readonly tenantContext: TenantContext,
     private readonly trackOrderUseCase: TrackOrderUseCase,
+    private readonly getDashboardMetricsUseCase: GetDashboardMetricsUseCase,
+    private readonly tenantContext: TenantContext,
   ) {}
 
-  // 🟢 ROTA PÚBLICA (Qualquer cliente pode acessar)
   @Post('checkout')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Realiza o checkout de um novo pedido' }) // 👈 3. Descrição da rota
   async checkout(@Body() dto: CheckoutDto) {
     const order = await this.checkoutUseCase.execute({
       tenantId: dto.tenantId,
@@ -85,5 +88,13 @@ export class OrdersController {
   @Get(':id/track')
   async trackOrder(@Param('id') orderId: string) {
     return this.trackOrderUseCase.execute(orderId);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('metrics/dashboard')
+  async getMetrics() {
+    const tenantId = this.tenantContext.getTenantId();
+    if (!tenantId) throw new InternalServerErrorException('Contexto perdido.');
+
+    return this.getDashboardMetricsUseCase.execute(tenantId);
   }
 }

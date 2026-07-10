@@ -1,25 +1,32 @@
-// src/infrastructure/ioc/products.module.ts
 import { Module } from '@nestjs/common';
 import { ProductsController } from '../http/controllers/products.controller';
-import { CreateProductUseCase } from '../../application/use-cases/create-product.use-case';
-import { ProductRepository } from '../../domain/repositories/product.repository';
-import { PrismaProductRepository } from '../database/repositories/prisma-product.repository';
 import { PrismaService } from '../database/prisma.service';
 import { TenantContext } from '../database/tenant-context';
-import { CatalogController } from '../http/controllers/catalog.controller';
-import { ListPublicCatalogUseCase } from 'src/application/use-cases/list-public-catalog.use-case';
+import { ProductRepository } from '../../domain/repositories/product.repository';
+import { PrismaProductRepository } from '../database/repositories/prisma-product.repository';
+
+// 👇 Importação de todos os Casos de Uso
+import { CreateProductUseCase } from '../../application/use-cases/create-product.use-case';
+import { ListProductsUseCase } from '../../application/use-cases/list-products.use-case';
+import { DeactivateProductUseCase } from '../../application/use-cases/deactivate-product.use-case';
+import { AdjustStockUseCase } from '../../application/use-cases/adjust-stock.use-case';
+import { UpdateProductImageUseCase } from '../../application/use-cases/update-product-image.use-case';
 
 @Module({
-  controllers: [ProductsController, CatalogController],
+  controllers: [ProductsController],
   providers: [
-    CreateProductUseCase,
     PrismaService,
     TenantContext,
-    ListPublicCatalogUseCase,
     {
       provide: ProductRepository,
       useClass: PrismaProductRepository,
     },
+    // 👇 Todos os Casos de Uso registados aqui!
+    CreateProductUseCase,
+    ListProductsUseCase,
+    DeactivateProductUseCase,
+    AdjustStockUseCase,
+    UpdateProductImageUseCase,
   ],
   exports: [ProductRepository],
 })
