@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { Prisma } from '@prisma/client';
 
 export interface PublicProductDTO {
   id: string;
@@ -7,7 +8,7 @@ export interface PublicProductDTO {
   description: string | null;
   price: number;
   imageUrl: string | null;
-  isAvailable: boolean; // True se tiver estoque > 0
+  isAvailable: boolean;
 }
 
 export interface PublicCatalogResponse {
@@ -19,8 +20,10 @@ export interface PublicCatalogResponse {
 export class ListPublicCatalogUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(tenantSlug: string): Promise<PublicCatalogResponse> {
-    // 1. Busca o Tenant pelo Slug (nome na URL)
+  async execute(
+    tenantSlug: string,
+    searchTerm?: string,
+  ): Promise<PublicCatalogResponse> {
     const tenant = await this.prisma.tenant.findUnique({
       where: { slug: tenantSlug },
     });
@@ -29,16 +32,23 @@ export class ListPublicCatalogUseCase {
       throw new NotFoundException('Catálogo não encontrado.');
     }
 
-    // 2. Busca apenas produtos ATIVOS dessa loja
+    const whereClause: Prisma.ProductWhereInput = {
+      tenantId: tenant.id,
+      active: true,
+    };
+
+    if (searchTerm) {
+      whereClause.OR = [
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
     const products = await this.prisma.product.findMany({
-      where: {
-        tenantId: tenant.id,
-        active: true,
-      },
+      where: whereClause,
       orderBy: { name: 'asc' },
     });
 
-    // 3. Mapeia para não vazar dados sensíveis (como estoque exato ou limite mínimo)
     return {
       tenantName: tenant.name,
       products: products.map((p) => ({
@@ -47,7 +57,7 @@ export class ListPublicCatalogUseCase {
         description: p.description,
         price: p.price,
         imageUrl: p.imageUrl,
-        isAvailable: p.stock > 0, // Regra: Só está disponível se tiver estoque real
+        isAvailable: p.stock > 0,
       })),
     };
   }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // src/infrastructure/http/controllers/products.controller.ts
 import {
   Controller,
@@ -117,11 +116,13 @@ export class ProductsController {
 
     return { message: 'Estoque atualizado com sucesso.' };
   }
+
   @Patch(':id/image')
-  @UseInterceptors(FileInterceptor('file')) // Captura o campo 'file' do FormData
-  async uploadImage(
-    @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
+  @HttpCode(HttpStatus.OK) // 👈 1. Mudamos para OK (200) para podermos devolver um JSON
+  @UseInterceptors(FileInterceptor('file'))
+  async updateImage(
+    @Param('id') productId: string,
+    @UploadedFile() file: Express.Multer.File, // 👈 2. Injetamos o ficheiro corretamente!
   ) {
     const tenantId = this.tenantContext.getTenantId();
     if (!tenantId) throw new InternalServerErrorException('Contexto perdido.');
@@ -130,21 +131,19 @@ export class ProductsController {
       throw new BadRequestException('O ficheiro de imagem é obrigatório.');
     }
 
-    // MOCK DE STORAGE (Simulação de upload para o S3 / Supabase Storage)
-    // No mundo real, aqui chamaríamos um StorageService.upload(file)
-    // Para este MVP da Milestone 2, geramos uma URL fictícia baseada no nome do ficheiro.
+    // MOCK DE STORAGE
     const mockStorageUrl = `https://supabase.storage.helioserp.com/${tenantId}/products/${Date.now()}-${file.originalname}`;
 
-    const product = await this.updateProductImage.execute({
+    // 👈 3. O Use Case é void, então apenas executamos sem tentar guardar numa variável
+    await this.updateProductImage.execute({
       tenantId,
-      productId: id,
+      productId, // 👈 4. Nome correto da variável
       imageUrl: mockStorageUrl,
     });
 
     return {
-      id: product.id,
-      name: product.name,
-      imageUrl: product.imageUrl,
+      productId,
+      imageUrl: mockStorageUrl,
       message: 'Imagem associada com sucesso (Mock Storage).',
     };
   }

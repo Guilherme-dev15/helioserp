@@ -1,12 +1,15 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ListPublicCatalogUseCase } from '../../../application/use-cases/list-public-catalog.use-case';
 
-@Controller('catalog') // Rota base: /catalog
+@Controller('catalog')
 export class CatalogController {
   constructor(private readonly listPublicCatalog: ListPublicCatalogUseCase) {}
 
-  @Get(':slug') // Rota: GET /catalog/nome-da-loja
-  async getCatalog(@Param('slug') slug: string) {
-    return this.listPublicCatalog.execute(slug);
+  @Get(':slug')
+  async getCatalog(
+    @Param('slug') slug: string,
+    @Query('search') search?: string, // 👈 Recebe a pesquisa da URL (ex: ?search=cerveja)
+  ) {
+    return this.listPublicCatalog.execute(slug, search);
   }
 }

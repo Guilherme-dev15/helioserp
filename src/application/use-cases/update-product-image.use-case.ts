@@ -1,7 +1,5 @@
-// src/application/use-cases/update-product-image.use-case.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProductRepository } from '../../domain/repositories/product.repository';
-import { Product } from '../../domain/entities/product';
 
 export interface UpdateProductImageCommand {
   tenantId: string;
@@ -13,21 +11,17 @@ export interface UpdateProductImageCommand {
 export class UpdateProductImageUseCase {
   constructor(private readonly productRepository: ProductRepository) {}
 
-  async execute(command: UpdateProductImageCommand): Promise<Product> {
+  async execute(command: UpdateProductImageCommand): Promise<void> {
     const product = await this.productRepository.findById(
       command.tenantId,
       command.productId,
     );
 
     if (!product) {
-      throw new NotFoundException(
-        'Produto não encontrado ou não pertence a esta loja.',
-      );
+      throw new NotFoundException('Produto não encontrado.');
     }
 
-    product.updateImageUrl(command.imageUrl); // Regra de domínio pura
+    product.updateImageUrl(command.imageUrl);
     await this.productRepository.update(product);
-
-    return product;
   }
 }

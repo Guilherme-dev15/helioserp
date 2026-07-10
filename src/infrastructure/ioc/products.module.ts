@@ -18,7 +18,7 @@ import { ListPublicCatalogUseCase } from 'src/application/use-cases/list-public-
     ListPublicCatalogUseCase,
     {
       provide: ProductRepository,
-      useClass: PrismaProductRepository, // Injeção de dependência pura!
+      useClass: PrismaProductRepository,
     },
   ],
   exports: [ProductRepository],
