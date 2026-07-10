@@ -1,6 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { CheckoutUseCase } from '../../../application/use-cases/checkout.use-case';
 import { CheckoutDto } from '../dto/checkout.dto';
+import { WhatsAppFormatter } from 'src/application/utils/whatsapp-formatter.util';
 
 @Controller('orders') // Rota base: /orders
 export class OrdersController {
@@ -15,12 +16,16 @@ export class OrdersController {
       customerPhone: dto.customerPhone,
       items: dto.items,
     });
-
+    const whatsappText = WhatsAppFormatter.formatCheckoutMessage(
+      order,
+      dto.customerName,
+    );
     return {
       message: 'Pedido realizado com sucesso!',
       orderId: order.id,
       total: order.total,
       status: order.status,
+      whatsappText,
     };
   }
 }
