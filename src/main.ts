@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
+import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -12,7 +12,7 @@ async function bootstrap() {
 
   // Habilita o CORS para o Front-end conseguir fazer requisições
   app.enableCors();
-
+  app.use(helmet());
   // 👇 CONFIGURAÇÃO DO SWAGGER (DOCUMENTAÇÃO DA API)
   const config = new DocumentBuilder()
     .setTitle('Helios ERP API')
