@@ -63,6 +63,7 @@ model Order {
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
   deliveryMode  String      @default("RETIRADA") @map("delivery_mode")
+  histories     OrderHistory[]
 
   tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   items         OrderItem[] 
@@ -87,4 +88,16 @@ model OrderItem {
 enum Role {
   ADMIN
   VENDEDOR
+}
+
+model OrderHistory {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @map("order_id") @db.Uuid
+  oldStatus   String   @map("old_status")
+  newStatus   String   @map("new_status")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_histories")
 }

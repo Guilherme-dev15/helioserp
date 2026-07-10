@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
@@ -83,14 +84,27 @@ export class PrismaOrderRepository implements OrderRepository {
     });
   }
 
-  async update(order: Order): Promise<void> {
-    await this.prisma.order.update({
-      // Usamos a chave composta para garantir que o pedido pertence ao tenant correto
-      where: { id: order.id, tenantId: order.tenantId },
-      data: {
-        status: order.status,
-        // A nossa FSM garante que este status já foi validado na Entidade
-      },
+  async update(order: Order, oldStatus?: string): Promise<void> {
+    // 👈 Usamos o $transaction para garantir atomicidade (tudo ou nada)
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Atualiza o status do pedido
+      await tx.order.update({
+        where: { id: order.id, tenantId: order.tenantId },
+        data: {
+          status: order.status,
+        },
+      });
+
+      // 2. Se houver mudança de status, cria o Log de Auditoria
+      if (oldStatus && oldStatus !== order.status) {
+        await tx.orderHistory.create({
+          data: {
+            orderId: order.id,
+            oldStatus: oldStatus,
+            newStatus: order.status,
+          },
+        });
+      }
     });
   }
 }
