@@ -5,6 +5,7 @@ import { OrdersModule } from './infrastructure/ioc/orders.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthModuleOptions } from '@nestjs/passport';
+import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
 @Module({
   imports: [
     // 👇 Configura o limite: Máximo de 100 requisições a cada 60 segundos (60000 ms) por IP
@@ -23,6 +24,7 @@ import { AuthModuleOptions } from '@nestjs/passport';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+      JwtStrategy,
     },
   ],
 })
