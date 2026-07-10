@@ -18,5 +18,6 @@ import { TenantContext } from '../database/tenant-context';
       useClass: PrismaProductRepository, // Injeção de dependência pura!
     },
   ],
+  exports: [ProductRepository],
 })
 export class ProductsModule {}

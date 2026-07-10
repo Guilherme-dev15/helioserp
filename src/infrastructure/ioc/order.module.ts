@@ -4,9 +4,10 @@ import { OrderRepository } from '../../domain/repositories/order.repository';
 import { PrismaOrderRepository } from '../database/repositories/prisma-order.repository';
 import { PrismaService } from '../database/prisma.service';
 import { TenantContext } from '../database/tenant-context';
-
+import { ProductsModule } from './products.module';
+import { CheckoutUseCase } from '../../application/use-cases/checkout.use-case';
 @Module({
-  imports: [],
+  imports: [ProductsModule],
   providers: [
     PrismaService,
     TenantContext,
@@ -14,7 +15,8 @@ import { TenantContext } from '../database/tenant-context';
       provide: OrderRepository,
       useClass: PrismaOrderRepository,
     },
+    CheckoutUseCase,
   ],
-  exports: [OrderRepository],
+  exports: [OrderRepository, CheckoutUseCase],
 })
 export class OrdersModule {}
