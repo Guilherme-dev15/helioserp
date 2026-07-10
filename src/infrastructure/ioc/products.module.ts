@@ -6,13 +6,16 @@ import { ProductRepository } from '../../domain/repositories/product.repository'
 import { PrismaProductRepository } from '../database/repositories/prisma-product.repository';
 import { PrismaService } from '../database/prisma.service';
 import { TenantContext } from '../database/tenant-context';
+import { CatalogController } from '../http/controllers/catalog.controller';
+import { ListPublicCatalogUseCase } from 'src/application/use-cases/list-public-catalog.use-case';
 
 @Module({
-  controllers: [ProductsController],
+  controllers: [ProductsController, CatalogController],
   providers: [
     CreateProductUseCase,
     PrismaService,
     TenantContext,
+    ListPublicCatalogUseCase,
     {
       provide: ProductRepository,
       useClass: PrismaProductRepository, // Injeção de dependência pura!
