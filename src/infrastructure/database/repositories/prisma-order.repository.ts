@@ -3,8 +3,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { OrderRepository } from '../../../domain/repositories/order.repository';
-import { Order } from '../../../domain/entities/order';
+import { Order, OrderStatus } from '../../../domain/entities/order';
 import { OrderItem } from '../../../domain/entities/order-item';
+
 // 👇 Importamos os tipos gerados pelo próprio Prisma
 import {
   Order as PrismaOrder,
@@ -61,7 +62,6 @@ export class PrismaOrderRepository implements OrderRepository {
     return models.map((model) => this.mapToDomain(model));
   }
 
-  // 👇 Substituímos o 'any' pelo tipo estrito OrderWithItems
   private mapToDomain(model: OrderWithItems): Order {
     const items = model.items.map((item) =>
       OrderItem.create({
@@ -77,9 +77,20 @@ export class PrismaOrderRepository implements OrderRepository {
       customerName: model.customerName,
       customerPhone: model.customerPhone,
       deliveryMode: model.deliveryMode,
-      status: model.status as 'PENDING' | 'PAID' | 'CANCELED',
+      status: model.status as OrderStatus,
       createdAt: model.createdAt,
       items,
+    });
+  }
+
+  async update(order: Order): Promise<void> {
+    await this.prisma.order.update({
+      // Usamos a chave composta para garantir que o pedido pertence ao tenant correto
+      where: { id: order.id, tenantId: order.tenantId },
+      data: {
+        status: order.status,
+        // A nossa FSM garante que este status já foi validado na Entidade
+      },
     });
   }
 }

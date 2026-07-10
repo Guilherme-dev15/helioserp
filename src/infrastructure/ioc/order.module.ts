@@ -1,12 +1,14 @@
-// src/infrastructure/ioc/orders.module.ts
 import { Module } from '@nestjs/common';
 import { OrderRepository } from '../../domain/repositories/order.repository';
 import { PrismaOrderRepository } from '../database/repositories/prisma-order.repository';
 import { PrismaService } from '../database/prisma.service';
 import { TenantContext } from '../database/tenant-context';
-import { ProductsModule } from './products.module';
 import { CheckoutUseCase } from '../../application/use-cases/checkout.use-case';
+import { ProductsModule } from './products.module';
 import { OrdersController } from '../http/controllers/orders.controller';
+// 👇 Importe o novo caso de uso
+import { UpdateOrderStatusUseCase } from '../../application/use-cases/update-order-status.use-case';
+
 @Module({
   imports: [ProductsModule],
   controllers: [OrdersController],
@@ -18,7 +20,8 @@ import { OrdersController } from '../http/controllers/orders.controller';
       useClass: PrismaOrderRepository,
     },
     CheckoutUseCase,
+    UpdateOrderStatusUseCase,
   ],
-  exports: [OrderRepository, CheckoutUseCase],
+  exports: [OrderRepository, CheckoutUseCase, UpdateOrderStatusUseCase],
 })
 export class OrdersModule {}
