@@ -8,6 +8,7 @@ import { ProductsModule } from './products.module';
 import { OrdersController } from '../http/controllers/orders.controller';
 // 👇 Importe o novo caso de uso
 import { UpdateOrderStatusUseCase } from '../../application/use-cases/update-order-status.use-case';
+import { TrackOrderUseCase } from 'src/application/use-cases/track-order.use-case';
 
 @Module({
   imports: [ProductsModule],
@@ -21,6 +22,7 @@ import { UpdateOrderStatusUseCase } from '../../application/use-cases/update-ord
     },
     CheckoutUseCase,
     UpdateOrderStatusUseCase,
+    TrackOrderUseCase,
   ],
   exports: [OrderRepository, CheckoutUseCase, UpdateOrderStatusUseCase],
 })

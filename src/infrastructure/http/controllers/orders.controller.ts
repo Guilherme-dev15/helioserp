@@ -7,6 +7,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Get,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CheckoutUseCase } from '../../../application/use-cases/checkout.use-case';
@@ -16,6 +17,7 @@ import { UpdateOrderStatusUseCase } from '../../../application/use-cases/update-
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { TenantContext } from '../../database/tenant-context';
 import { OrderStatus } from '../../../domain/entities/order';
+import { TrackOrderUseCase } from '../../../application/use-cases/track-order.use-case';
 
 // 👇 DTO simples para validar a entrada de dados do Admin
 export class UpdateOrderStatusDto {
@@ -29,6 +31,7 @@ export class OrdersController {
     // 👇 Injetamos o novo caso de uso e o contexto de tenant (para segurança)
     private readonly updateOrderStatusUseCase: UpdateOrderStatusUseCase,
     private readonly tenantContext: TenantContext,
+    private readonly trackOrderUseCase: TrackOrderUseCase,
   ) {}
 
   // 🟢 ROTA PÚBLICA (Qualquer cliente pode acessar)
@@ -78,5 +81,9 @@ export class OrdersController {
     return {
       message: `Status alterado de forma segura para ${dto.newStatus}.`,
     };
+  }
+  @Get(':id/track')
+  async trackOrder(@Param('id') orderId: string) {
+    return this.trackOrderUseCase.execute(orderId);
   }
 }
