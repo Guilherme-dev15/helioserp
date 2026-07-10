@@ -6,8 +6,10 @@ import { PrismaService } from '../database/prisma.service';
 import { TenantContext } from '../database/tenant-context';
 import { ProductsModule } from './products.module';
 import { CheckoutUseCase } from '../../application/use-cases/checkout.use-case';
+import { OrdersController } from '../http/controllers/orders.controller';
 @Module({
   imports: [ProductsModule],
+  controllers: [OrdersController],
   providers: [
     PrismaService,
     TenantContext,
