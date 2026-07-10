@@ -4,7 +4,6 @@ import { ProductsModule } from './infrastructure/ioc/products.module';
 import { OrdersModule } from './infrastructure/ioc/orders.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { AuthModuleOptions } from '@nestjs/passport';
 import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
 @Module({
   imports: [
@@ -15,7 +14,6 @@ import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
         limit: 100,
       },
     ]),
-    AuthModuleOptions,
     ProductsModule,
     OrdersModule,
   ],
@@ -24,8 +22,8 @@ import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-      JwtStrategy,
     },
+    JwtStrategy,
   ],
 })
 export class AppModule {}
