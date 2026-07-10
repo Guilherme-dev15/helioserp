@@ -14,6 +14,7 @@ export class OrdersController {
       tenantId: dto.tenantId,
       customerName: dto.customerName,
       customerPhone: dto.customerPhone,
+      deliveryMode: dto.deliveryMode,
       items: dto.items,
     });
     const whatsappText = WhatsAppFormatter.formatCheckoutMessage(

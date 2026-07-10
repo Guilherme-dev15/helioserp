@@ -62,6 +62,7 @@ model Order {
   totalAmount   Int         @map("total_amount")
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
+  deliveryMode  String      @default("RETIRADA") @map("delivery_mode")
 
   tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   items         OrderItem[] 

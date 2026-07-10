@@ -12,6 +12,7 @@ export interface CheckoutCommand {
   tenantId: string;
   customerName?: string;
   customerPhone?: string;
+  deliveryMode?: string;
   items: {
     productId: string;
     quantity: number;
@@ -72,6 +73,7 @@ export class CheckoutUseCase {
       tenantId: command.tenantId,
       customerName: command.customerName,
       customerPhone: command.customerPhone,
+      deliveryMode: command.deliveryMode,
       items: orderItems,
     });
 

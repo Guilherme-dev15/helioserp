@@ -9,6 +9,7 @@ export interface OrderProps {
   createdAt?: Date;
   customerName?: string | null;
   customerPhone?: string | null;
+  deliveryMode?: string;
 }
 
 export class Order {
@@ -19,6 +20,7 @@ export class Order {
   private _createdAt: Date;
   private _customerName: string | null;
   private _customerPhone: string | null;
+  private _deliveryMode: string;
 
   private constructor(props: OrderProps) {
     if (!props.items || props.items.length === 0) {
@@ -32,6 +34,7 @@ export class Order {
     this._createdAt = props.createdAt ?? new Date();
     this._customerName = props.customerName ?? null;
     this._customerPhone = props.customerPhone ?? null;
+    this._deliveryMode = props.deliveryMode ?? 'RETIRADA';
   }
 
   static create(props: OrderProps): Order {
@@ -67,5 +70,8 @@ export class Order {
   }
   get customerPhone(): string | null {
     return this._customerPhone;
+  }
+  get deliveryMode(): string {
+    return this._deliveryMode;
   }
 }

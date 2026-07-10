@@ -4,8 +4,9 @@ export class CheckoutItemDto {
 }
 
 export class CheckoutDto {
-  tenantId!: string; // A loja onde a compra está sendo feita
-  customerName?: string; // Identificação leve (Opcional)
-  customerPhone?: string; // Identificação leve (Opcional)
+  tenantId!: string;
+  customerName?: string;
+  customerPhone?: string;
+  deliveryMode?: string;
   items!: CheckoutItemDto[];
 }
