@@ -24,6 +24,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProductImageUseCase } from '../../../application/use-cases/update-product-image.use-case';
 import 'multer';
 import { CreateProductUseCase } from '../../../application/use-cases/stock/create-product.use-case';
+import { TenantInterceptor } from '../tenant.interceptor';
 
 // 1. DTO Alinhado exatamente com o que o nosso Use Case pede
 export class CreateProductDto {
@@ -33,6 +34,7 @@ export class CreateProductDto {
 }
 
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(TenantInterceptor)
 @Controller('products')
 export class ProductsController {
   constructor(
