@@ -1,6 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 // src/application/use-cases/stock/create-product.use-case.ts
+import { Inject, Injectable } from '@nestjs/common';
+import { ProductRepository } from '../../../domain/repositories/product.repository';
+import { Product } from '../../../domain/entities/product';
+
 export interface CreateProductInput {
   tenantId: string;
   name: string;
@@ -8,30 +10,26 @@ export interface CreateProductInput {
   stock: number;
 }
 
+@Injectable()
 export class CreateProductUseCase {
-  constructor(private readonly productRepository: any) {}
+  constructor(
+    @Inject(ProductRepository)
+    private readonly productRepository: ProductRepository,
+  ) {}
 
-  async execute(input: CreateProductInput) {
-    // 1. Validação de Domínio
-    if (input.price <= 0) {
-      throw new Error('O preço do produto deve ser maior que zero');
-    }
-
+  async execute(input: CreateProductInput): Promise<Product> {
     if (!input.tenantId) {
       throw new Error('O produto deve pertencer a um tenant válido');
     }
 
-    // 2. Construção do Objeto
-    const product = {
+    const product = Product.create({
       tenantId: input.tenantId,
       name: input.name,
       price: input.price,
       stock: input.stock,
-      createdAt: new Date(),
-    };
+    });
 
-    // 3. Persistência (AGORA USANDO .save() COMO O TESTE ESPERA)
-    await this.productRepository.save(product);
+    await this.productRepository.create(product);
 
     return product;
   }
