@@ -4,7 +4,7 @@ import { ProductsModule } from './infrastructure/ioc/products.module';
 import { OrdersModule } from './infrastructure/ioc/orders.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './infrastructure/auth/auth.module';
 @Module({
   imports: [
     // 👇 Configura o limite: Máximo de 100 requisições a cada 60 segundos (60000 ms) por IP
