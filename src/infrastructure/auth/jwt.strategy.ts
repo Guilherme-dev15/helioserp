@@ -14,7 +14,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      // 👇 O pulo do gato: Lê a chave pública (ES256/RS256) direto do seu Supabase
+      // 👇 1. ESTA É A LINHA MÁGICA QUE FALTAVA! Autoriza criptografia avançada
+      algorithms: ['ES256', 'RS256'],
       secretOrKeyProvider: passportJwtSecret({
         cache: true,
         rateLimit: true,
