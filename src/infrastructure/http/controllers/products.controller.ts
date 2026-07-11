@@ -14,7 +14,6 @@ import {
   BadRequestException,
   UploadedFile,
 } from '@nestjs/common';
-import { CreateProductUseCase } from '../../../application/use-cases/stock/create-product.use-case';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { TenantContext } from '../../database/tenant-context';
 import { ListProductsUseCase } from '../../../application/use-cases/list-products.use-case';
@@ -24,19 +23,21 @@ import { AdjustStockDto } from '../dto/adjust-stock.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateProductImageUseCase } from '../../../application/use-cases/update-product-image.use-case';
 import 'multer';
+import { CreateProductUseCase } from '../../../application/use-cases/stock/create-product.use-case';
 
+// 1. DTO Alinhado exatamente com o que o nosso Use Case pede
 export class CreateProductDto {
   name!: string;
-  description?: string;
   price!: number;
-  minStockThreshold?: number;
+  stock!: number;
 }
 
-@UseGuards(JwtAuthGuard) // Rota protegida, só entra quem tem JWT válido!
+@UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductsController {
   constructor(
-    private readonly createProduct: CreateProductUseCase,
+    // Removidas as duplicidades. Agora injetamos o Use Case oficial apenas uma vez
+    private readonly createProductUseCase: CreateProductUseCase,
     private readonly listProducts: ListProductsUseCase,
     private readonly deactivateProduct: DeactivateProductUseCase,
     private readonly tenantContext: TenantContext,
@@ -44,9 +45,9 @@ export class ProductsController {
     private readonly updateProductImage: UpdateProductImageUseCase,
   ) {}
 
+  // 2. Apenas UM método POST para criar, utilizando o seu contexto de tenant
   @Post()
   async create(@Body() dto: CreateProductDto) {
-    // Pega o ID da loja injetado silenciosamente pelo nosso Interceptor
     const tenantId = this.tenantContext.getTenantId();
 
     if (!tenantId) {
@@ -55,24 +56,23 @@ export class ProductsController {
       );
     }
 
-    const product = await this.createProduct.execute({
+    const product = await this.createProductUseCase.execute({
       tenantId,
       name: dto.name,
-      description: dto.description,
       price: dto.price,
-      minStockThreshold: dto.minStockThreshold,
+      stock: dto.stock,
     });
 
+    // 3. O retorno exato da entidade construída no Use Case
     return {
-      id: product.id,
       name: product.name,
       price: product.price,
       stock: product.stock,
-      minStockThreshold: product.minStockThreshold,
-      isLowStock: product.isLowStock,
+      createdAt: product.createdAt,
     };
   }
 
+  // 👇 Os seus outros endpoints permanecem intocados!
   @Get()
   async findAll() {
     const tenantId = this.tenantContext.getTenantId();
@@ -98,6 +98,7 @@ export class ProductsController {
     await this.deactivateProduct.execute(tenantId, id);
     return { message: 'Produto desativado com sucesso.' };
   }
+
   @Patch(':id/stock')
   @HttpCode(HttpStatus.OK)
   async adjustStockAction(
@@ -118,11 +119,11 @@ export class ProductsController {
   }
 
   @Patch(':id/image')
-  @HttpCode(HttpStatus.OK) // 👈 1. Mudamos para OK (200) para podermos devolver um JSON
+  @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('file'))
   async updateImage(
     @Param('id') productId: string,
-    @UploadedFile() file: Express.Multer.File, // 👈 2. Injetamos o ficheiro corretamente!
+    @UploadedFile() file: Express.Multer.File,
   ) {
     const tenantId = this.tenantContext.getTenantId();
     if (!tenantId) throw new InternalServerErrorException('Contexto perdido.');
@@ -131,13 +132,11 @@ export class ProductsController {
       throw new BadRequestException('O ficheiro de imagem é obrigatório.');
     }
 
-    // MOCK DE STORAGE
     const mockStorageUrl = `https://supabase.storage.helioserp.com/${tenantId}/products/${Date.now()}-${file.originalname}`;
 
-    // 👈 3. O Use Case é void, então apenas executamos sem tentar guardar numa variável
     await this.updateProductImage.execute({
       tenantId,
-      productId, // 👈 4. Nome correto da variável
+      productId,
       imageUrl: mockStorageUrl,
     });
 
