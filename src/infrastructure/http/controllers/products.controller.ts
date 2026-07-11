@@ -14,7 +14,7 @@ import {
   BadRequestException,
   UploadedFile,
 } from '@nestjs/common';
-import { CreateProductUseCase } from '../../../application/use-cases/create-product.use-case';
+import { CreateProductUseCase } from '../../../application/use-cases/stock/create-product.use-case';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { TenantContext } from '../../database/tenant-context';
 import { ListProductsUseCase } from '../../../application/use-cases/list-products.use-case';

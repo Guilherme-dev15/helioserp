@@ -6,7 +6,7 @@ import { ProductRepository } from '../../domain/repositories/product.repository'
 import { PrismaProductRepository } from '../database/repositories/prisma-product.repository';
 
 // 👇 Importação de todos os Casos de Uso
-import { CreateProductUseCase } from '../../application/use-cases/create-product.use-case';
+import { CreateProductUseCase } from '../../application/use-cases/stock/create-product.use-case';
 import { ListProductsUseCase } from '../../application/use-cases/list-products.use-case';
 import { DeactivateProductUseCase } from '../../application/use-cases/deactivate-product.use-case';
 import { AdjustStockUseCase } from '../../application/use-cases/adjust-stock.use-case';

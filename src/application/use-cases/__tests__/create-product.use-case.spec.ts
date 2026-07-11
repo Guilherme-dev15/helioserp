@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 // src/application/use-cases/__tests__/create-product.use-case.spec.ts
-import { CreateProductUseCase } from '../create-product.use-case';
+import { CreateProductUseCase } from '../stock/create-product.use-case';
 import { ProductRepository } from '../../../domain/repositories/product.repository';
 
 describe('CreateProductUseCase', () => {
