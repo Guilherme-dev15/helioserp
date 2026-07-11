@@ -2,6 +2,7 @@
 import { Product } from '../entities/product';
 
 export abstract class ProductRepository {
+  [x: string]: any;
   abstract create(product: Product): Promise<void>;
   abstract findAll(tenantId: string): Promise<Product[]>;
   abstract findById(
