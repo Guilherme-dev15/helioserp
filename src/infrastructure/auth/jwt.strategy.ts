@@ -1,6 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
+import { passportJwtSecret } from 'jwks-rsa';
 
 export interface SupabaseJwtPayload {
   sub: string;
@@ -10,19 +11,19 @@ export interface SupabaseJwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
-    const secret = process.env.SUPABASE_JWT_SECRET;
-
-    // 👇 A Prova de Fogo: Vai imprimir no log do Render se leu a chave
-    console.log('🔑 Iniciando JwtStrategy...');
-    console.log(
-      `Tamanho do Secret lido: ${secret ? secret.length : 'UNDEFINED (FALHA GRAVE)'}`,
-    );
+    console.log('🛡️ Iniciando JwtStrategy com suporte a ES256 (JWKS)...');
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: secret || 'chave-fallback',
-      algorithms: ['HS256'], // 👈 Dizemos explicitamente ao Passport para usar o clássico
+      algorithms: ['ES256', 'RS256'], // 👈 Autorização explícita para o novo formato
+      secretOrKeyProvider: passportJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri:
+          'https://kdxvhxvnemmhswpuwgvg.supabase.co/auth/v1/.well-known/jwks.json',
+      }),
     });
   }
 
