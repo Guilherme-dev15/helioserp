@@ -9,7 +9,7 @@ import { JwtStrategy } from './jwt.strategy'; // Importe a estratégia aqui!
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }), // Define o padrão
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
+      secret: process.env.JWT_SECRET || 'chave_de_emergencia_para_nao_crashar',
       signOptions: { expiresIn: '1h' },
     }),
   ],
