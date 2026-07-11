@@ -19,38 +19,35 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      // 👇 Esta é a frase que queremos ver no log!
       console.log(
         '🔄 Validando token diretamente com o servidor do Supabase...',
       );
 
-      // Ligação direta com a API do seu Supabase para verificar a autenticidade
       const response = await fetch(
         'https://kdxvhxvnemmhswpuwgvg.supabase.co/auth/v1/user',
         {
           method: 'GET',
           headers: {
-            Authorization: authHeader, // Envia o Bearer Token que veio do Thunder Client
-            apikey: 'sb_publishable_Vsi18ypKnMe5ekj8PDJ-qQ_kE7dcOl0', // Sua chave pública
+            Authorization: authHeader,
+            apikey: 'sb_publishable_Vsi18ypKnMe5ekj8PDJ-qQ_kE7dcOl0',
           },
         },
       );
 
       if (!response.ok) {
-        const errData = await response.json();
-        console.error('🕵️ O SUPABASE RECUSOU O TOKEN:', errData);
+        console.error('🕵️ O SUPABASE RECUSOU O TOKEN.');
         throw new UnauthorizedException('Token inválido ou expirado');
       }
 
-      // Se passou, o token é 100% legítimo
       const user = await response.json();
 
-      // Injeta os dados do utilizador (tenant) na rota
       request.user = { userId: user.id, email: user.email };
 
       console.log('✅ Token validado com sucesso! Acesso liberado.');
       return true;
     } catch (error) {
-      console.error('🕵️ FALHA DE CONEXÃO COM O SUPABASE:', error);
+      console.error('🕵️ FALHA DE CONEXÃO:', error);
       throw new UnauthorizedException('Falha interna de autenticação');
     }
   }
