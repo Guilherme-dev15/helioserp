@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
@@ -18,10 +20,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         rateLimit: true,
         jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
       }),
-      algorithms: ['ES256', 'RS256'],
+      algorithms: ['ES256'],
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(payload: any) {
     if (!payload.sub) {
       throw new UnauthorizedException(
