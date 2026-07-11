@@ -25,11 +25,27 @@ import { UpdateProductImageUseCase } from '../../../application/use-cases/update
 import 'multer';
 import { CreateProductUseCase } from '../../../application/use-cases/stock/create-product.use-case';
 import { TenantInterceptor } from '../tenant.interceptor';
+import {
+  IsString,
+  IsNumber,
+  IsPositive,
+  IsInt,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 // 1. DTO Alinhado exatamente com o que o nosso Use Case pede
 export class CreateProductDto {
+  @IsString()
+  @MinLength(1)
   name!: string;
+
+  @IsNumber()
+  @IsPositive()
   price!: number;
+
+  @IsInt()
+  @Min(0)
   stock!: number;
 }
 
