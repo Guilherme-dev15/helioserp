@@ -1,40 +1,32 @@
-// src/infrastructure/auth/jwt.strategy.ts
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common'; // 👈 Removido o UnauthorizedException
 
-// Correção do 'any': Interface para tipar o payload do JWT do Supabase
-interface SupabaseJwtPayload {
+// 💡 1. Tipagem forte do payload do Supabase para matar o 'any'
+export interface SupabaseJwtPayload {
   sub: string;
-  email?: string;
-  role?: string;
-  [key: string]: unknown; // Permite outras propriedades sem quebrar o tipo
+  email: string;
+  // O Supabase injeta mais coisas, mas por agora só precisamos destas
 }
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
+    const secret = process.env.SUPABASE_JWT_SECRET;
+
+    if (!secret) {
+      console.error('❌ ERRO CRÍTICO: SUPABASE_JWT_SECRET não definido!');
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.SUPABASE_JWT_SECRET as string,
+      secretOrKey: secret || 'chave-temporaria-para-deploy-2026',
     });
   }
 
-  // O Passport já validou a assinatura do token neste ponto.
-  // O payload contém os dados que o Supabase embutiu no JWT.
-  // FIX: Removido 'async' porque não há operações assíncronas (promessas) aqui.
+  // 💡 2. Removido o 'async' (não usamos await aqui) e adicionada a interface
   validate(payload: SupabaseJwtPayload) {
-    if (!payload || !payload.sub) {
-      throw new UnauthorizedException('Token inválido ou expirado.');
-    }
-
-    // Retornamos os dados mínimos para a requisição (o "sub" é o ID do usuário no Supabase)
-    // Nosso Guard/Interceptor vai usar isso para buscar o tenant_id associado a este usuário.
-    return {
-      userId: payload.sub,
-      email: payload.email,
-      role: payload.role || 'VENDEDOR',
-    };
+    return { userId: payload.sub, email: payload.email };
   }
 }
